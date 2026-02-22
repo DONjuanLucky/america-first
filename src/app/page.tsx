@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -94,10 +94,51 @@ const rankCards = [
 
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
+  const [zip, setZip] = useState("");
+  const [repLoading, setRepLoading] = useState(false);
+  const [repError, setRepError] = useState("");
+  const [repResult, setRepResult] = useState<{
+    region: string;
+    method: string;
+    updatedAt: string;
+    note?: string;
+    officials: Array<{ name: string; role: string; party?: string; phone?: string }>;
+  } | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleFindRepresentatives = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setRepError("");
+    setRepLoading(true);
+
+    try {
+      const response = await fetch(`/api/representatives?zip=${encodeURIComponent(zip)}`, { cache: "no-store" });
+      const data = (await response.json()) as {
+        error?: string;
+        region: string;
+        method: string;
+        updatedAt: string;
+        note?: string;
+        officials: Array<{ name: string; role: string; party?: string; phone?: string }>;
+      };
+
+      if (!response.ok) {
+        setRepError(data.error ?? "Could not fetch representatives for this ZIP code.");
+        setRepResult(null);
+        return;
+      }
+
+      setRepResult(data);
+    } catch {
+      setRepError("Network error while fetching representatives.");
+      setRepResult(null);
+    } finally {
+      setRepLoading(false);
+    }
+  };
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-6 px-4 py-6 md:px-8 md:py-10">
@@ -105,20 +146,20 @@ export default function Home() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45, ease: "easeOut" }}
-        className="relative overflow-hidden rounded-3xl border border-[#d2dde9] bg-[#0a1628] p-8 text-white md:p-12"
+        className="relative overflow-hidden rounded-3xl border border-[#c9d7ea] bg-[linear-gradient(135deg,#0f2747_0%,#1d4a82_70%,#1d4a82_100%)] p-8 text-white md:p-12"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(212,160,23,0.24),transparent_36%),radial-gradient(circle_at_80%_90%,rgba(26,58,107,0.75),transparent_45%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.08)_0%,transparent_58%),radial-gradient(circle_at_86%_8%,rgba(178,34,52,0.24),transparent_33%)]" />
         <motion.div
           initial={{ scale: 0.88, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-          className="absolute -right-8 -top-8 h-44 w-44 rounded-full border border-[#d4a017]/35 bg-[#d4a017]/10"
+          className="absolute -right-8 -top-8 h-44 w-44 rounded-full border border-white/25 bg-white/10"
         />
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.18, ease: "easeOut" }}
-          className="absolute -bottom-10 left-[38%] h-36 w-36 rounded-full border border-[#c0392b]/40 bg-[#c0392b]/10"
+          className="absolute -bottom-10 left-[38%] h-36 w-36 rounded-full border border-[#b22234]/35 bg-[#b22234]/16"
         />
 
         <div className="relative z-10 grid gap-8 lg:grid-cols-[1.5fr_1fr]">
@@ -130,7 +171,7 @@ export default function Home() {
             <h1 className="font-display text-5xl leading-[0.96] tracking-tight md:text-7xl">
               AMERICA FIRST
             </h1>
-            <p className="font-heading mt-3 text-2xl text-[#e8eef7] md:text-3xl">
+            <p className="font-heading mt-3 text-2xl text-[#f2f6fc] md:text-3xl">
               Informed citizens. Stronger democracy.
             </p>
             <p className="mt-6 max-w-2xl text-[1.06rem] leading-relaxed text-[#d8e1ee]">
@@ -141,7 +182,7 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-full bg-[#c0392b] px-5 py-3 text-sm font-bold tracking-wide text-white transition hover:translate-y-[-1px] hover:bg-[#d24a3d]"
+              className="inline-flex items-center gap-2 rounded-full bg-[#b22234] px-5 py-3 text-sm font-bold tracking-wide text-white transition hover:translate-y-[-1px] hover:bg-[#c83145]"
             >
               Explore Platform <ArrowRight className="h-4 w-4" />
             </Link>
@@ -313,7 +354,7 @@ export default function Home() {
         >
           <h3 className="font-heading text-2xl text-[#11294a]">Who Represents Me?</h3>
           <p className="mt-1 text-sm text-[#5f6f84]">Enter ZIP code to instantly load federal, state, and local representatives.</p>
-          <form className="mt-5 flex flex-wrap gap-3">
+          <form className="mt-5 flex flex-wrap gap-3" onSubmit={handleFindRepresentatives}>
             <label className="sr-only" htmlFor="zip">
               ZIP code
             </label>
@@ -322,22 +363,37 @@ export default function Home() {
               <input
                 id="zip"
                 name="zip"
+                value={zip}
+                onChange={(event) => setZip(event.target.value)}
+                pattern="[0-9]{5}"
                 placeholder="Enter ZIP code"
                 className="h-11 w-full bg-transparent text-sm text-[#11294a] outline-none placeholder:text-[#8a98ac]"
               />
             </div>
             <button
-              type="button"
+              type="submit"
               className="rounded-xl bg-[#1a3a6b] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#234a85]"
             >
-              Find Representatives
+              {repLoading ? "Looking up..." : "Find Representatives"}
             </button>
           </form>
-          <div className="mt-5 grid gap-2 text-sm">
-            <div className="rounded-lg bg-white p-3 text-[#11294a]">U.S. Senate: 2 representatives loaded</div>
-            <div className="rounded-lg bg-white p-3 text-[#11294a]">U.S. House District: NY-14</div>
-            <div className="rounded-lg bg-white p-3 text-[#11294a]">Local council + school board available</div>
-          </div>
+          {repError && <p className="mt-3 rounded-lg bg-[#fff2ee] p-3 text-sm text-[#9b352b]">{repError}</p>}
+
+          {repResult && (
+            <div className="mt-5 grid gap-2 text-sm">
+              <div className="rounded-lg bg-white p-3 text-[#11294a]">
+                Region: {repResult.region || "Unavailable"} · Updated {new Date(repResult.updatedAt).toLocaleString()}
+              </div>
+              {repResult.officials.slice(0, 6).map((official) => (
+                <div key={`${official.role}-${official.name}`} className="rounded-lg bg-white p-3 text-[#11294a]">
+                  <p className="font-semibold">{official.role}</p>
+                  <p>{official.name}{official.party ? ` (${official.party})` : ""}</p>
+                  {official.phone && <p className="text-xs text-[#5f6f84]">Phone: {official.phone}</p>}
+                </div>
+              ))}
+              {repResult.note && <div className="rounded-lg bg-[#eef4fb] p-3 text-xs text-[#334d71]">{repResult.note}</div>}
+            </div>
+          )}
         </motion.article>
       </section>
 

@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { isAdminEmail } from "@/lib/admin";
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
 import { NextAuthOptions, getServerSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { z } from "zod";
 
 const credentialsSchema = z.object({
@@ -51,15 +52,62 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          }),
+        ]
+      : []),
   ],
   callbacks: {
+    async signIn({ user, account }) {
+      if (account?.provider !== "google") {
+        return true;
+      }
+
+      const email = user.email?.toLowerCase();
+      if (!email) {
+        return false;
+      }
+
+      const existing = await prisma.user.findUnique({ where: { email } });
+      if (!existing) {
+        const generatedHash = await hash(`google-oauth-${Date.now()}`, 10);
+        await prisma.user.create({
+          data: {
+            email,
+            name: user.name ?? "Citizen",
+            zip: "00000",
+            passwordHash: generatedHash,
+            preference: {
+              create: {
+                trackedIssues: ["Economy", "Healthcare", "Education"],
+                trackedReps: [],
+                homeModules: ["brief", "queue", "signals"],
+                justFacts: true,
+              },
+            },
+          },
+        });
+      }
+
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
-        token.sub = user.id;
-        token.name = user.name;
-        token.email = user.email;
-        token.zip = (user as { zip?: string }).zip;
-        token.isAdmin = isAdminEmail(user.email);
+        const email = user.email?.toLowerCase();
+        if (email) {
+          const dbUser = await prisma.user.findUnique({ where: { email } });
+          if (dbUser) {
+            token.sub = dbUser.id;
+            token.name = dbUser.name;
+            token.email = dbUser.email;
+            token.zip = dbUser.zip;
+            token.isAdmin = isAdminEmail(dbUser.email);
+          }
+        }
       }
       return token;
     },

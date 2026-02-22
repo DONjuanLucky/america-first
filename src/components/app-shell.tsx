@@ -10,13 +10,16 @@ import {
   Handshake,
   Home,
   Landmark,
+  Moon,
   Newspaper,
+  Sun,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 import { useAppState } from "@/components/providers/app-provider";
+import { useTheme } from "next-themes";
 
 const baseNavItems = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -35,6 +38,7 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const { user, preferences, signOut } = useAppState();
+  const { theme, setTheme } = useTheme();
   const navItems = user?.isAdmin
     ? [...baseNavItems, { href: "/admin/perspectives", label: "Admin", icon: BadgeCheck }]
     : baseNavItems;
@@ -76,6 +80,14 @@ export function AppShell({ children }: AppShellProps) {
           <p className="mt-2 text-xs text-[#5f6f84]">
             Tracking {preferences.trackedIssues.length} issues and {preferences.trackedReps.length} representatives.
           </p>
+          <button
+            type="button"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#d4deeb] px-3 py-2 text-xs font-semibold text-[#11294a] hover:bg-[#f4f8fd]"
+          >
+            {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+            {theme === "dark" ? "Switch to Light" : "Switch to Dark"}
+          </button>
           <button
             type="button"
             onClick={handleSignOut}

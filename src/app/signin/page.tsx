@@ -117,6 +117,16 @@ export default function SignInPage() {
           </div>
 
           <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
+            <button
+              type="button"
+              onClick={() => void authSignIn("google", { callbackUrl: nextPath })}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#cad6e6] bg-white px-4 py-3 text-sm font-semibold text-[#11294a] transition hover:bg-[#f4f8fd]"
+            >
+              Continue with Google
+            </button>
+
+            <div className="my-2 text-center text-xs uppercase tracking-[0.08em] text-[#7e8fa8]">or use email</div>
+
             {mode === "signup" && (
               <label className="block text-sm font-semibold text-[#11294a]">
                 Full name

@@ -7,6 +7,7 @@ import {
 } from "next/font/google";
 import { AppProvider } from "@/components/providers/app-provider";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
 
 const display = Playfair_Display({
@@ -34,9 +35,38 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "America First | Civic Intelligence Platform",
+  metadataBase: new URL("https://america-first.app"),
+  title: {
+    default: "America First | Civic Intelligence Platform",
+    template: "%s | America First",
+  },
   description:
     "A modern civic intelligence experience for trusted, nonpartisan public information.",
+  keywords: [
+    "civic intelligence",
+    "nonpartisan news",
+    "government transparency",
+    "civic engagement",
+    "who represents me",
+    "fact verified politics",
+  ],
+  openGraph: {
+    title: "America First | Civic Intelligence Platform",
+    description:
+      "Understand left/right perspectives, fact-only updates, and historical context in one civic platform.",
+    type: "website",
+    url: "https://america-first.app",
+    siteName: "America First",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "America First | Civic Intelligence Platform",
+    description: "Nonpartisan civic intelligence with source-based fact summaries.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
@@ -45,13 +75,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${display.variable} ${heading.variable} ${sans.variable} ${mono.variable} antialiased`}
       >
-        <AuthSessionProvider>
-          <AppProvider>{children}</AppProvider>
-        </AuthSessionProvider>
+        <ThemeProvider>
+          <AuthSessionProvider>
+            <AppProvider>{children}</AppProvider>
+          </AuthSessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

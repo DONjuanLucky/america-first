@@ -1,15 +1,82 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 :root {
-  --navy-primary: #0a1628;
-  --brand-blue: #1a3a6b;
-  --accent-red: #c0392b;
+  --navy-primary: #0f2747;
+  --brand-blue: #1d4a82;
+  --accent-red: #b22234;
   --civic-gold: #d4a017;
-  --surface-light: #edf2f7;
-  --text-main: #132236;
-  --text-muted: #5f6f84;
-  --surface-card: rgba(255, 255, 255, 0.82);
-  --surface-card-soft: rgba(237, 242, 247, 0.78);
+  --surface-light: #f6f9fd;
+  --text-main: #142641;
+  --text-muted: #536b89;
+  --surface-card: rgba(255, 255, 255, 0.92);
+  --surface-card-soft: rgba(246, 249, 253, 0.92);
+  --color-primary: #1d4a82;
+  --color-dark: #131313;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #e5e5e5;
+  --color-neutral-300: #d4d4d4;
+  --color-neutral-800: #262626;
+  --size-container: 1400px;
+  --container-padding: 2em;
+  --section-padding: 4em;
+  --gap: 1.5em;
+  --cubic-default: cubic-bezier(0.65, 0.05, 0, 1);
+  --bg-gradient:
+    radial-gradient(circle at 8% -12%, rgba(15, 39, 71, 0.1), transparent 32%),
+    radial-gradient(circle at 88% 8%, rgba(178, 34, 52, 0.08), transparent 26%),
+    linear-gradient(180deg, #ffffff 0%, #f7fafd 56%, #eef4fb 100%);
+
+  /* shadcn/ui-compatible tokens */
+  --background: 210 45% 98%;
+  --foreground: 214 42% 16%;
+  --card: 0 0% 100%;
+  --card-foreground: 214 42% 16%;
+  --border: 214 28% 86%;
+  --input: 214 28% 86%;
+  --ring: 214 72% 40%;
+  --primary: 214 63% 31%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 34% 96%;
+  --secondary-foreground: 214 42% 16%;
+  --muted: 210 34% 96%;
+  --muted-foreground: 215 20% 46%;
+  --accent: 354 71% 42%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --radius: 0.9rem;
+}
+
+[data-theme="dark"] {
+  --surface-light: #0b1321;
+  --text-main: #e8eef8;
+  --text-muted: #a7b6ce;
+  --surface-card: rgba(17, 29, 48, 0.92);
+  --surface-card-soft: rgba(14, 24, 40, 0.92);
+  --bg-gradient:
+    radial-gradient(circle at 8% -12%, rgba(38, 79, 136, 0.25), transparent 35%),
+    radial-gradient(circle at 88% 8%, rgba(178, 34, 52, 0.22), transparent 28%),
+    linear-gradient(180deg, #070d18 0%, #0b1321 58%, #111d30 100%);
+
+  /* shadcn/ui-compatible tokens (dark) */
+  --background: 222 47% 7%;
+  --foreground: 210 40% 96%;
+  --card: 222 47% 11%;
+  --card-foreground: 210 40% 96%;
+  --border: 217 28% 18%;
+  --input: 217 28% 18%;
+  --ring: 214 72% 55%;
+  --primary: 214 72% 55%;
+  --primary-foreground: 222 47% 7%;
+  --secondary: 222 47% 13%;
+  --secondary-foreground: 210 40% 96%;
+  --muted: 222 47% 13%;
+  --muted-foreground: 215 20% 70%;
+  --accent: 354 76% 55%;
+  --accent-foreground: 222 47% 7%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 210 40% 96%;
 }
 
 @theme inline {
@@ -21,10 +88,7 @@ body {
   margin: 0;
   font-family: var(--font-sans-ui), sans-serif;
   color: var(--text-main);
-  background:
-    radial-gradient(circle at 15% -10%, rgba(26, 58, 107, 0.18), transparent 42%),
-    radial-gradient(circle at 85% 30%, rgba(212, 160, 23, 0.12), transparent 38%),
-    linear-gradient(180deg, #f9fbff 0%, #edf2f7 58%, #e6edf6 100%);
+  background: var(--bg-gradient);
   min-height: 100vh;
 }
 
@@ -38,16 +102,21 @@ body {
 
 .glass-card {
   background: var(--surface-card);
-  border: 1px solid rgba(255, 255, 255, 0.64);
+  border: 1px solid rgba(16, 42, 76, 0.12);
   backdrop-filter: blur(10px);
-  box-shadow: 0 10px 28px rgba(10, 22, 40, 0.08);
+  box-shadow: 0 8px 22px rgba(16, 42, 76, 0.08);
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+[data-theme="dark"] .glass-card {
+  border: 1px solid rgba(110, 145, 196, 0.22);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.32);
 }
 
 .glass-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(26, 58, 107, 0.22);
-  box-shadow: 0 16px 34px rgba(10, 22, 40, 0.13);
+  border-color: rgba(31, 79, 143, 0.28);
+  box-shadow: 0 14px 30px rgba(16, 42, 76, 0.14);
 }
 
 .soft-card {
@@ -57,6 +126,56 @@ body {
   transition: transform 220ms ease, box-shadow 220ms ease;
 }
 
+[data-theme="dark"] .soft-card {
+  border: 1px solid rgba(110, 145, 196, 0.2);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .glass-card,
+[data-theme="dark"] .soft-card {
+  color: #e8eef8;
+}
+
+[data-theme="dark"] .glass-card p,
+[data-theme="dark"] .glass-card h1,
+[data-theme="dark"] .glass-card h2,
+[data-theme="dark"] .glass-card h3,
+[data-theme="dark"] .glass-card h4,
+[data-theme="dark"] .glass-card h5,
+[data-theme="dark"] .glass-card h6,
+[data-theme="dark"] .glass-card span,
+[data-theme="dark"] .glass-card li,
+[data-theme="dark"] .glass-card label,
+[data-theme="dark"] .glass-card a,
+[data-theme="dark"] .glass-card button,
+[data-theme="dark"] .soft-card p,
+[data-theme="dark"] .soft-card h1,
+[data-theme="dark"] .soft-card h2,
+[data-theme="dark"] .soft-card h3,
+[data-theme="dark"] .soft-card h4,
+[data-theme="dark"] .soft-card h5,
+[data-theme="dark"] .soft-card h6,
+[data-theme="dark"] .soft-card span,
+[data-theme="dark"] .soft-card li,
+[data-theme="dark"] .soft-card label,
+[data-theme="dark"] .soft-card a,
+[data-theme="dark"] .soft-card button {
+  color: #e8eef8 !important;
+}
+
+[data-theme="dark"] .glass-card input,
+[data-theme="dark"] .glass-card textarea,
+[data-theme="dark"] .soft-card input,
+[data-theme="dark"] .soft-card textarea {
+  color: #f3f7ff !important;
+}
+
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-white\/80,
+[data-theme="dark"] .bg-white\/90 {
+  background-color: rgba(19, 32, 52, 0.95) !important;
+}
+
 .soft-card:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(10, 22, 40, 0.1);
@@ -64,6 +183,19 @@ body {
 
 .text-mono {
   font-family: var(--font-mono-data), monospace;
+}
+
+.glass-inset {
+  border: 1px solid rgba(120, 151, 195, 0.28);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 249, 255, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 2px 10px rgba(16, 42, 76, 0.06);
+  border-radius: 0.8rem;
+}
+
+[data-theme="dark"] .glass-inset {
+  border: 1px solid rgba(131, 161, 204, 0.35);
+  background: linear-gradient(180deg, rgba(20, 33, 54, 0.95), rgba(14, 24, 40, 0.95));
+  box-shadow: inset 0 1px 0 rgba(161, 183, 219, 0.15), 0 4px 14px rgba(0, 0, 0, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,12 +4,30 @@ import { motion } from "framer-motion";
 import { CalendarClock, CircleGauge, MapPinned, ShieldCheck } from "lucide-react";
 import { PageIntro } from "@/components/page-intro";
 import { useAppState } from "@/components/providers/app-provider";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 const stats = [
   { label: "Representatives tracked", value: "18", icon: MapPinned, detail: "Federal + state + local" },
   { label: "Integrity average", value: "79/100", icon: ShieldCheck, detail: "Top quartile nationally" },
   { label: "Sentiment pulse", value: "+3.2%", icon: CircleGauge, detail: "Compared to last month" },
   { label: "Upcoming civic events", value: "7", icon: CalendarClock, detail: "Next 14 days" },
+];
+
+const participationTrend = [
+  { month: "Jan", engagement: 28, actions: 11 },
+  { month: "Feb", engagement: 34, actions: 14 },
+  { month: "Mar", engagement: 41, actions: 17 },
+  { month: "Apr", engagement: 47, actions: 18 },
+  { month: "May", engagement: 52, actions: 22 },
+  { month: "Jun", engagement: 58, actions: 25 },
+];
+
+const issueVolume = [
+  { topic: "Economy", mentions: 42 },
+  { topic: "Healthcare", mentions: 33 },
+  { topic: "Education", mentions: 26 },
+  { topic: "Immigration", mentions: 29 },
+  { topic: "Environment", mentions: 21 },
 ];
 
 export default function DashboardPage() {
@@ -79,9 +97,9 @@ export default function DashboardPage() {
               move election-admin bills to committee vote.
             </p>
             <ul className="mt-4 space-y-2 text-sm text-[#11294a]">
-              <li className="rounded-lg bg-white p-3">7/9 claims verified across AP, Reuters, CBO, and .gov releases.</li>
-              <li className="rounded-lg bg-white p-3">2 disputed narratives flagged for missing source evidence.</li>
-              <li className="rounded-lg bg-white p-3">Bias context balanced: 46% center, 27% lean left, 27% lean right.</li>
+              <li className="glass-inset p-3">7/9 claims verified across AP, Reuters, CBO, and .gov releases.</li>
+              <li className="glass-inset p-3">2 disputed narratives flagged for missing source evidence.</li>
+              <li className="glass-inset p-3">Bias context balanced: 46% center, 27% lean left, 27% lean right.</li>
             </ul>
           </article>
         )}
@@ -90,12 +108,47 @@ export default function DashboardPage() {
           <article className="glass-card rounded-2xl p-5">
             <h2 className="font-heading text-2xl text-[#11294a]">Civic Action Queue</h2>
             <div className="mt-3 space-y-2 text-sm text-[#11294a]">
-              <div className="rounded-lg border border-[#d3ddeb] bg-white p-3">Contact state rep about Senate Bill 214 before Tue 5:00 PM.</div>
-              <div className="rounded-lg border border-[#d3ddeb] bg-white p-3">Town hall in Brooklyn District 11 this Thursday at 7:30 PM.</div>
-              <div className="rounded-lg border border-[#d3ddeb] bg-white p-3">Voter registration deadline in your county: Oct 12.</div>
+              <div className="glass-inset p-3">Contact state rep about Senate Bill 214 before Tue 5:00 PM.</div>
+              <div className="glass-inset p-3">Town hall in Brooklyn District 11 this Thursday at 7:30 PM.</div>
+              <div className="glass-inset p-3">Voter registration deadline in your county: Oct 12.</div>
             </div>
           </article>
         )}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <article className="glass-card rounded-2xl p-5">
+          <h2 className="font-heading text-2xl text-[#11294a]">Civic Engagement Trend</h2>
+          <p className="mt-1 text-sm text-[#5f6f84]">Monthly growth in platform engagement and constituent actions.</p>
+          <div className="mt-3 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={participationTrend}>
+                <CartesianGrid strokeDasharray="4 4" stroke="#d6e0ef" />
+                <XAxis dataKey="month" stroke="#6e83a1" />
+                <YAxis stroke="#6e83a1" />
+                <Tooltip />
+                <Line type="monotone" dataKey="engagement" stroke="#1d4a82" strokeWidth={3} dot={{ r: 4 }} />
+                <Line type="monotone" dataKey="actions" stroke="#b22234" strokeWidth={3} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+
+        <article className="glass-card rounded-2xl p-5">
+          <h2 className="font-heading text-2xl text-[#11294a]">Issue Momentum</h2>
+          <p className="mt-1 text-sm text-[#5f6f84]">How often your tracked topics are appearing in verified coverage.</p>
+          <div className="mt-3 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={issueVolume}>
+                <CartesianGrid strokeDasharray="4 4" stroke="#d6e0ef" />
+                <XAxis dataKey="topic" stroke="#6e83a1" />
+                <YAxis stroke="#6e83a1" />
+                <Tooltip />
+                <Bar dataKey="mentions" fill="#1d4a82" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.25fr_1fr]">

@@ -2,30 +2,69 @@
 
 import { motion } from "framer-motion";
 import { CircleHelp, MessageSquareText, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { PageIntro } from "@/components/page-intro";
+import { forumThreads } from "@/lib/forum-data";
+import { useEffect, useState } from "react";
 
-const threads = [
-  {
-    title: "What does the new election security proposal actually change?",
-    tag: "Policy Deep Dive",
-    replies: 42,
-    quality: "High quality discussion",
-  },
-  {
-    title: "Should municipal budgets publish plain-language quarterly updates?",
-    tag: "Local Issues",
-    replies: 28,
-    quality: "Constructive and sourced",
-  },
-  {
-    title: "AMA: Former state election director on ballot process myths",
-    tag: "Ask an Expert",
-    replies: 66,
-    quality: "Live session ongoing",
-  },
-];
+type Poll = {
+  id: string;
+  slug: string;
+  question: string;
+  totalVotes: number;
+  options: Array<{ id: string; label: string; votes: number }>;
+};
 
 export default function ForumPage() {
+  const [polls, setPolls] = useState<Poll[]>([]);
+  const [pollError, setPollError] = useState("");
+
+  const loadPolls = async () => {
+    const response = await fetch("/api/polls", { cache: "no-store" });
+    if (!response.ok) {
+      setPollError("Unable to load community polls.");
+      return;
+    }
+    const data = (await response.json()) as Poll[];
+    setPolls(data);
+  };
+
+  useEffect(() => {
+    void loadPolls();
+  }, []);
+
+  const submitVote = async (pollId: string, optionId: string) => {
+    setPollError("");
+
+    let anonId = "";
+    try {
+      const key = "af-anon-voter";
+      const existing = localStorage.getItem(key);
+      if (existing) {
+        anonId = existing;
+      } else {
+        anonId = crypto.randomUUID();
+        localStorage.setItem(key, anonId);
+      }
+    } catch {
+      anonId = "fallback-voter";
+    }
+
+    const response = await fetch(`/api/polls/${pollId}/vote`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-anon-id": anonId },
+      body: JSON.stringify({ optionId }),
+    });
+
+    if (!response.ok) {
+      const data = (await response.json()) as { error?: string };
+      setPollError(data.error ?? "Unable to submit vote.");
+      return;
+    }
+
+    await loadPolls();
+  };
+
   return (
     <div className="space-y-4">
       <PageIntro
@@ -53,7 +92,7 @@ export default function ForumPage() {
       </section>
 
       <section className="space-y-3">
-        {threads.map((thread, idx) => (
+        {forumThreads.map((thread, idx) => (
           <motion.article
             key={thread.title}
             initial={{ opacity: 0, y: 14 }}
@@ -65,7 +104,12 @@ export default function ForumPage() {
               <span className="rounded-full bg-[#eef3fa] px-3 py-1 text-xs font-semibold text-[#1a3a6b]">{thread.tag}</span>
               <span className="text-xs text-[#5f6f84]">{thread.replies} replies</span>
             </div>
-            <h2 className="font-heading mt-2 text-2xl leading-tight text-[#11294a]">{thread.title}</h2>
+            <Link href={`/forum/${thread.slug}`} className="group block">
+              <h2 className="font-heading mt-2 text-2xl leading-tight text-[#11294a] transition group-hover:text-[#1a3a6b]">
+                {thread.title}
+              </h2>
+              <p className="mt-1 text-sm text-[#5f6f84]">{thread.summary}</p>
+            </Link>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
               <span className="inline-flex items-center gap-1 rounded-full bg-[#e7f3ec] px-3 py-1 text-[#1d6f42]">
                 <ShieldCheck className="h-3.5 w-3.5" />
@@ -81,6 +125,38 @@ export default function ForumPage() {
               </span>
             </div>
           </motion.article>
+        ))}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-heading text-3xl text-[#11294a]">Community Polls</h2>
+        {pollError && <p className="rounded-lg bg-[#fff2ee] p-3 text-sm text-[#9b352b]">{pollError}</p>}
+        {polls.map((poll) => (
+          <article key={poll.id} className="glass-card rounded-2xl p-5">
+            <p className="text-xs font-semibold tracking-[0.1em] text-[#5f6f84]">POLL · {poll.totalVotes} votes</p>
+            <h3 className="font-heading mt-1 text-2xl text-[#11294a]">{poll.question}</h3>
+            <div className="mt-3 grid gap-2">
+              {poll.options.map((option) => {
+                const pct = poll.totalVotes > 0 ? Math.round((option.votes / poll.totalVotes) * 100) : 0;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => submitVote(poll.id, option.id)}
+                    className="rounded-xl border border-[#d4dfef] bg-white px-3 py-2 text-left"
+                  >
+                    <div className="flex items-center justify-between gap-2 text-sm text-[#11294a]">
+                      <span>{option.label}</span>
+                      <span className="text-xs text-[#5f6f84]">{option.votes} ({pct}%)</span>
+                    </div>
+                    <div className="mt-1 h-1.5 rounded-full bg-[#e8eff8]">
+                      <div className="h-1.5 rounded-full bg-[#1a3a6b]" style={{ width: `${pct}%` }} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </article>
         ))}
       </section>
     </div>
